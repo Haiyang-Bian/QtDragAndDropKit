@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/qt/qml/qtdraganddropkit">
+        <file>main.qml</file>
+        <file>DropComponent.qml</file>
+        <file>DragComponent.qml</file>
+        <file>Handle.qml</file>
+        <file>Node.qml</file>
+    </qresource>
+</RCC>
