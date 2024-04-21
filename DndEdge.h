@@ -7,7 +7,7 @@ class DndEdge
 public:
 	DndEdge();
 	~DndEdge();
-	void generatePath();
+	void generatePath();//QMap<QString, DndNode> nodes);
 
 public:
 	QString source;
