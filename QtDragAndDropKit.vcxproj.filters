@@ -21,6 +21,9 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
+    <Filter Include="Source Files\qml">
+      <UniqueIdentifier>{021248cb-8190-4794-b7ce-1e1d9d84d796}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -32,40 +35,26 @@
     <None Include="main.qml">
       <Filter>Source Files</Filter>
     </None>
-    <ClCompile Include="DndNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DndEdge.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DndControler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DropComponent.qml">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="DragComponent.qml">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="NewFile.qml">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="DragComponent.qml">
+      <Filter>Source Files\qml</Filter>
+    </None>
+    <None Include="DropComponent.qml">
+      <Filter>Source Files\qml</Filter>
+    </None>
     <None Include="Handle.qml">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\qml</Filter>
     </None>
     <None Include="Node.qml">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\qml</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DndNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DndEdge.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DndControler.h">

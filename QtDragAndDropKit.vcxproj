@@ -90,8 +90,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DndControler.cpp" />
-    <ClCompile Include="DndEdge.cpp" />
-    <ClCompile Include="DndNode.cpp" />
     <ClCompile Include="main.cpp" />
     <None Include="Handle.qml" />
     <None Include="NewFile.qml" />
@@ -103,8 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DndControler.h" />
-    <ClInclude Include="DndEdge.h" />
-    <ClInclude Include="DndNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
