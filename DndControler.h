@@ -1,5 +1,6 @@
 #pragma once
 #define MARGINS 50
+#define MINSTEP 50
 
 #include <QObject>
 #include <qjsonobject.h>
@@ -13,6 +14,9 @@ struct Point
 
 inline bool operator<(const Point& p1, const Point& p2) {
 	return p1.x < p2.x && p1.y < p2.y;
+}
+inline bool operator==(const Point& p1, const Point& p2) {
+	return p1.x == p2.x && p1.y == p2.y;
 }
 inline Point operator+(const Point& p1, const Point& p2) {
 	return Point{ p1.x + p2.x, p1.y + p2.y };
@@ -138,20 +142,97 @@ inline bool PointCover(const Point& p, const Margins& m) {
 
 Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes);
 
-class PathTree
+class PathNode
 {
 public:
-	PathTree(){}
-	~PathTree(){}
+	PathNode(){}
+	~PathNode(){}
 
-	PathTree(Point p) {
+	PathNode(Point p) {
 		this->p = p;
 	}
-
-	void calculatePath(const QMap<QString, DndNode>& nodes);
+	PathNode(Point p, int cost) {
+		this->p = p;
+		this->cost = cost;
+	}
 
 	Point p;
-	PathTree* son = nullptr;
+	int cost = 0;
+	PathNode* parent = nullptr;
+};
+
+class AStar
+{
+public:
+	AStar(Point s, Point e) {
+		this->startPoint = s;
+		openList.insert(s, 0);
+		this->endPoint = new PathNode{ e };
+	};
+	~AStar() {};
+
+	QMap<Point, int> openList;
+	QList<Point> closeList;
+	Point startPoint;
+	PathNode* endPoint = nullptr;
+	PathNode* node = nullptr;
+
+	void findPath(const QMap<QString, DndNode>& nodes) {
+		while (!openList.isEmpty()) {
+			PathNode* node = getBestNode();
+			if (node->p == endPoint->p) {
+				return;
+			}
+			else
+			{
+				openList.remove(node->p);
+				closeList.append(node->p);
+				QList<Point> nexts = getNextPoints(node->p);
+				for (Point p : nexts) {
+					if (closeList.contains(p))
+						continue;
+					if (isInvalid(nodes))
+						continue;
+					if (!openList.contains(p)) {
+
+					}
+				}
+			}
+		}
+	}
+	PathNode* getBestNode() {
+		QMap<Point, int>::iterator it = openList.begin();
+		Point minP = it.key();
+		for (it += 1; it != openList.end(); ++it) {
+			if (openList.value(minP) > *it)
+				minP = it.key();
+		}
+		return new PathNode{ minP, openList.value(minP) };
+	}
+	QList<Point> getNextPoints(Point p) {
+		return QList<Point> {
+			p - Point{0, MINSTEP},
+			p + Point{MINSTEP,0},
+			p + Point{0, MINSTEP},
+			p - Point{MINSTEP,0}
+		};
+	}
+	bool isInvalid(const QMap<QString, DndNode>& nodes) {
+
+	}
+	inline int gCost(PathNode* n) {
+		int cost = 0;
+		while (n)
+		{
+			cost += n->cost;
+			n = n->parent;
+		}
+		return cost;
+	}
+	inline int hCost(PathNode* n) {
+		Point cost = n->p - endPoint->p;
+		return abs(cost.x) + abs(cost.y);
+	}
 };
 
 class DndEdge
