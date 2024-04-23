@@ -3,11 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-DndControler::DndControler(QObject *parent) : QObject(parent)
-{}
-
-DndControler::~DndControler()
-{}
+using namespace std;
 
 void DndControler::createNode(QJsonObject obj) {
 	QString name = obj.value(QLatin1String("Name")).toString();
@@ -54,7 +50,7 @@ void DndControler::creatEdge(QJsonObject obj) {
 	edge.targetHandler = obj.value(QLatin1String("TargetHandler")).toString();
 	edge.start = obj.value(QLatin1String("Start")).toArray();
 	edge.end = obj.value(QLatin1String("End")).toArray();
-	edge.generatePath(getNode);
+	//edge.generatePath(getNode);
 	getEdge.insert(id, edge);
 }
 
@@ -76,124 +72,58 @@ QJsonArray DndControler::getEdges() {
 	return paths;
 }
 
-using namespace std;
-
-void DndControler::generatePath(QString s, QString t) {
-	path = QJsonArray();
-	switch (shType)
-	{
-	case 1:
-		switch (thType)
-		{
-		case 1:
-			// 1代表沿y轴,0代表沿x轴
-			this->path << 1 << start.at(0) << start.at(1) <<
-				std::min(start.at(1).toDouble() - 50, end.at(1).toDouble() - 80) <<
-				end.at(0).toDouble() << end.at(1) << end.at(0);
-			break;
-		case 2:
-			this->path << 1 << start.at(0) << start.at(1) <<
-				std::min(start.at(1).toDouble(), end.at(1).toDouble()) - 50 <<
-				end.at(0).toDouble() + 50 << end.at(1) << end.at(0);
-			break;
-		case 3:
-			this->path << 1 << start.at(0) << start.at(1) <<
-				start.at(1).toDouble() - 50 <<
-				end.at(0).toDouble() + 50 << end.at(1).toDouble() + 50 <<
-				end.at(0) << end.at(1);
-			break;
-		case 4:
-			this->path << 1 << start.at(0) << start.at(1) <<
-				start.at(1).toDouble() - 50 <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 + 50 <<
-				end.at(1) << end.at(0);
-		}
-		break;
-	case 2:
-		switch (thType)
-		{
-		case 1:
-			// 1代表沿y轴,0代表沿x轴
-			this->path << 0 << start.at(0) << start.at(1) <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 - 30 <<
-				end.at(1).toDouble() - 50 << end.at(0) << end.at(1);
-			break;
-		case 2:
-			this->path << 0 << start.at(0) << start.at(1) <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 - 50 <<
-				end.at(1).toDouble() - 60 << end.at(0).toDouble() + 50 << end.at(1) <<
-				end.at(0);
-			break;
-		case 3:
-			this->path << 0 << start.at(0) << start.at(1) <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 - 50 <<
-				end.at(1).toDouble() + 50 << end.at(0) << end.at(1);
-			break;
-		case 4:
-			this->path << 0 << start.at(0) << start.at(1) <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 <<
-				end.at(1) << end.at(0);
-		}
-		break;
-	case 3:
-		switch (thType)
-		{
-		case 1:
-			// 1代表沿y轴,0代表沿x轴
-			this->path << 1 << start.at(0) << start.at(1) <<
-				start.at(1).toDouble() + 50 << (start.at(0).toDouble() + end.at(0).toDouble()) / 2 <<
-				end.at(1).toDouble() - 50 << end.at(0) << end.at(1);
-			break;
-		case 2:
-			this->path << 1 << start.at(0) << start.at(1) <<
-				start.at(1).toDouble() + 50 <<
-				end.at(0).toDouble() + 50 << end.at(1) << end.at(0);
-			break;
-		case 3:
-			this->path << 1 << start.at(0) << start.at(1) <<
-				std::max(start.at(1).toDouble(), end.at(1).toDouble()) + 50 <<
-				end.at(0) << end.at(1);
-			break;
-		case 4:
-			this->path << 1 << start.at(0) << start.at(1) <<
-				start.at(1).toDouble() + 50 <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 <<
-				end.at(1) << end.at(0);
-		}
-		break;
-	case 4:
-		switch (thType)
-		{
-		case 1:
-			// 1代表沿y轴,0代表沿x轴
-			this->path << 0 << start.at(0) << start.at(1) <<
-				start.at(0).toDouble() - 50 <<
-				std::min(start.at(1).toDouble(), end.at(1).toDouble()) - 50 <<
-				end.at(0) << end.at(1);
-			break;
-		case 2:
-			this->path << 0 << start.at(0) << start.at(1) <<
-				start.at(0).toDouble() - 50 <<
-				std::min(start.at(1).toDouble(), end.at(1).toDouble()) - 50 <<
-				end.at(0).toDouble() + 50 << end.at(1) << end.at(0);
-			break;
-		case 3:
-			this->path << 0 << start.at(0) << start.at(1) <<
-				start.at(0).toDouble() - 50 <<
-				std::max(start.at(1).toDouble(), end.at(1).toDouble()) + 50 <<
-				end.at(0) << end.at(1);
-			break;
-		case 4:
-			this->path << 0 << start.at(0) << start.at(1) <<
-				start.at(0).toDouble() - 50 <<
-				std::max(start.at(1).toDouble(), end.at(1).toDouble()) + 50 <<
-				(start.at(0).toDouble() + end.at(0).toDouble()) / 2 + 50 <<
-				end.at(1) << end.at(0);
-		}
-		break;
-	}
+void DndControler::generatePath(QString s, QString sh, QString t, QString th) {
+	PathTree* paths = new PathTree{};
+	Point rs = realSartOrEnd(s, sh, getNode), rt = realSartOrEnd(t, th, getNode);
+	paths->p = rs;
+	
+	
 }
 
+Margins MergeBoundaries(const QStringList& ns, const QMap<QString, DndNode>& nodes) {
+	Margins all = nodes.value(ns.at(0)).getNodeMargin();
+	if (ns.size() == 1)
+		return all;
+	QStringList::const_iterator it;
+	for (it = ns.begin() + 1; it != ns.end(); ++it) {
+		Margins m = nodes.value(*it).getNodeMargin();
+		if (m.Top < all.Top)
+			all.Top = m.Top;
+		if (m.Left < all.Left)
+			all.Left = m.Left;
+		if (m.Right > all.Right)
+			all.Right = m.Right;
+		if (m.Bottom > all.Bottom)
+			all.Bottom = m.Bottom;
+	}
+	return all;
+}
+
+void PathTree::calculatePath(const QMap<QString, DndNode>& nodes) {
+	QMap<QString, DndNode>::const_iterator it;
+	QStringList firstType;
+	for (it = nodes.begin(); it != nodes.end(); ++it) {
+		Point b = Projection(it->getNodeMargin().Core(), p, son->p);
+		if (PointCover(b, *it) && !PointCover(p, *it) )
+			firstType.append(it.key());
+	}
+	Margins m = MergeBoundaries(firstType, nodes);
+	if (PointCover(son->p, m)) {
+	
+	}
+	else
+	{
+		PathTree *path, *transition = son;
+		if (p.x == son->p.x) {
+			if (p.y < son->p.y) {
+				path->p = Point{ p.x, m.Bottom };
+				
+			}
+		}
+	}
+	if (son != nullptr)
+		son->calculatePath(nodes);
+}
 
 void initPath(QJsonArray start, QJsonArray end, const Margins& s, const Margins& t) {
 	QList<double> path;
@@ -204,37 +134,35 @@ void initPath(QJsonArray start, QJsonArray end, const Margins& s, const Margins&
 }
 
 void DndControler::initTopPath(QString s, QString sh, QString t, QString th) {
-	QList<double> path;
+	QList<int> path;
 	DndNode& source = getNode[s], &target = getNode[t];
-	switch (getNode[t].handlers[th].type)
-	{
-	case 1:
-		 
-		break;
-	}
+	Margins sm = source.getNodeMargin(), tm = target.getNodeMargin();
+	
 }
 
-QStringList verticalCoverage(double x, double y1, double y2, const QMap<QString, DndNode>& nodes) {
-	QList<QString> edges;
+Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes) {
+	const DndNode& p = nodes[n];
+	Point ors = p.relativePoint(h);
 	QMap<QString, DndNode>::const_iterator it = nodes.begin();
 	for (; it != nodes.end(); ++it) {
-		Margins m = it->getNodeMargin();
-		if (x < m.Right && x > m.Left) {
-			if (y2 < y1) {
-				if (m.Bottom < y1 && m.Bottom > y2) {
-					edges << it.key();
-				}
-			}
-			else
+		if (PointCover(ors , *it)) {
+			switch (p.handlers[h].type)
 			{
-				if (m.Top > y1 && m.Top < y2) {
-					edges << it.key();
-				}
+			case 1:
+				return Point{ p.x, (p.y + it->getNodeMargin().Bottom) / 2 };
+			case 2:
+				return Point{ (p.x + it->getNodeMargin().Left) / 2 ,p.y };
+			case 3:
+				return Point{ p.x, (p.y + it->getNodeMargin().Top) / 2 };
+			case 4:
+				return Point{ (p.x + it->getNodeMargin().Right) / 2 ,p.y };
 			}
 		}
 	}
-	return edges;
+	return ors;
 }
+
+
 
 QStringList horizontalCoverage(double y, double x1, double x2, const QMap<QString, DndNode>& nodes) {
 	QList<QString> edges;
