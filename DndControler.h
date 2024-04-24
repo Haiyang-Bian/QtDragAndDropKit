@@ -1,12 +1,14 @@
 #pragma once
 #define MARGINS 50
-#define MINSTEP 50
+#define MINSTEP 20
 
 #include <QObject>
 #include <qjsonobject.h>
 #include <qjsonarray.h>
 #include <iostream>
+
 using namespace::std;
+
 struct Point
 {
 	int x = 0;
@@ -125,7 +127,7 @@ public:
 
 inline bool PointCover(const Point& p, const DndNode& node) {
 	Margins m = node.getNodeMargin();
-	if (p - Point{ m.Left, m.Top } < Point{ m.Right, m.Bottom } - Point{ m.Left, m.Top })
+	if (p - Point{ m.Left, m.Top } < Point{ m.Right, m.Bottom } - Point{ m.Left, m.Top } && Point{} < p - Point{ m.Left, m.Top })
 		return true;
 	return false;
 }
@@ -152,6 +154,8 @@ public:
 	}
 
 	Point p;
+	int gCost = 0;
+	int hCost = 0;
 	int cost = 0;
 	PathNode* parent = nullptr;
 };
@@ -199,25 +203,26 @@ public:
 				QList<Point> nexts = getNextPoints(node->p);
 				for (Point p : nexts) {
 					if (isInList(p, closeList)) {
-						qDebug() << "有病吧";
 						continue;
 					}
-					//if (isInvalid(p, nodes)) {
-					//	continue;
-					//}
+					if (isInvalid(p, nodes)) {
+						continue;
+					}
 					if (p.x < 0 || p.x > 800 || p.y < 0 || p.y > 750)
 						continue;
 					if (!isInList(p, openList)) {
 						PathNode* next = new PathNode{ p };
 						next->parent = node;
-						next->cost = gCost(next) + hCost(next);
+						next->gCost = gCost(next);
+						next->hCost = hCost(next);
+						next->cost = next->gCost + next->hCost;
 						openList.append(next);
 						qDebug() << "!!!!";
 					}
 					else
 					{
 						PathNode* pn = getNode(p);
-						if (pn->cost < node->cost + 1)
+						if (pn->gCost > node->gCost + 1)
 						{
 							pn->parent = node;
 							pn->cost = gCost(pn) + hCost(pn);
@@ -261,13 +266,13 @@ public:
 	bool isInvalid(Point p, const QMap<QString, DndNode>& nodes) {
 		QMap<QString, DndNode>::const_iterator it;
 		for (it = nodes.begin(); it != nodes.end(); ++it) {
-			if (PointCover(p, it->getNodeMargin()))
+			if (p.x > it->x && p.x < it->x + it->width && p.y > it->y && p.y < it->y + it->height)
 				return true;
 		}
 		return false;
 	}
 	inline int gCost(PathNode* n) {
-		return n->parent->cost + 1;
+		return n->parent->gCost + 1;
 	}
 	inline int hCost(PathNode* n) {
 		Point cost = n->p - endPoint;

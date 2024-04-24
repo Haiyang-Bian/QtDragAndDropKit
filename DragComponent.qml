@@ -29,8 +29,8 @@ Item {
         Drag.active: dragHandler.active
         Drag.dragType: dragType
         Drag.supportedActions: supportedActions
-        Drag.hotSpot.x: 32
-        Drag.hotSpot.y: 32
+        Drag.hotSpot.x: width / 2
+        Drag.hotSpot.y: height / 2
 
         Repeater {
             model: handlerList
@@ -48,6 +48,9 @@ Item {
                     if (parent.Drag.supportedActions === Qt.CopyAction) {
                         dragItem.x = 0;
                         dragItem.y = 0;
+                    }else{
+                        dragItem.x -= dragItem.x % 20
+                        dragItem.y -= dragItem.y % 20
                     }
                 }
             }

@@ -128,22 +128,22 @@ Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes) {
 	const DndNode& p = nodes[n];
 	Point ors = p.relativePoint(h);
 	QMap<QString, DndNode>::const_iterator it = nodes.begin();
-	for (; it != nodes.end(); ++it) {
-		if (PointCover(ors , *it)) {
-			switch (p.handlers[h].type)
-			{
-			case 1:
-				return Point{ p.x, (p.y + it->getNodeMargin().Bottom) / 2 };
-			case 2:
-				return Point{ (p.x + it->getNodeMargin().Left) / 2 ,p.y };
-			case 3:
-				return Point{ p.x, (p.y + it->getNodeMargin().Top) / 2 };
-			case 4:
-				return Point{ (p.x + it->getNodeMargin().Right) / 2 ,p.y };
-			}
-		}
-	}
-	//ors.x = ors.x / 20 * 20;
-	//ors.y = ors.y / 20 * 20;
+	//for (; it != nodes.end(); ++it) {
+	//	if (PointCover(ors , *it)) {
+	//		switch (p.handlers[h].type)
+	//		{
+	//		case 1:
+	//			return Point{ p.x, (p.y + it->getNodeMargin().Bottom) / 2 };
+	//		case 2:
+	//			return Point{ (p.x + it->getNodeMargin().Left) / 2 ,p.y };
+	//		case 3:
+	//			return Point{ p.x, (p.y + it->getNodeMargin().Top) / 2 };
+	//		case 4:
+	//			return Point{ (p.x + it->getNodeMargin().Right) / 2 ,p.y };
+	//		}
+	//	}
+	//}
+	ors.x -= (ors.x % 20);
+	ors.y -= (ors.y % 20);
 	return ors;
 }

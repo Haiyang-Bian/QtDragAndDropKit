@@ -7,14 +7,21 @@ DropArea {
     width: 500
     height: 500
 
+    property int space: 20
+
     onDropped: drop => {
         if (drop.source.Drag.supportedActions === Qt.CopyAction && drop.source.type === "Component") {
             var comp = Qt.createComponent("DragComponent.qml")
+            let x = drop.x - drop.source.width / 2
+            x -= x % space
+            let y = drop.y - drop.source.height / 2
+            y -= y % space
+            console.log(x,y)
             var obj = comp.createObject(dragArea,
                 {
                     "setname": "node_" + mainWindow.id,
-                    "x": drop.x - 25,
-                    "y": drop.y - 25,
+                    "x": x,
+                    "y": y,
                     "supportedActions": Qt.MoveAction,
                     "dragType": Drag.Internal,
                     "isDropped": true,
@@ -23,8 +30,8 @@ DropArea {
             )
             DndControler.createNode({
                 "Name": "node_" + mainWindow.id,
-                "X": drop.x - 25,
-                "Y": drop.y - 25,
+                "X": x,
+                "Y": y,
                 "Type": "Comman",
                 "Handlers": drop.source.getHandlers()
             })
@@ -67,11 +74,23 @@ DropArea {
         id: lineCanvas
         anchors.fill: parent
         z: 30
+        opacity: 0.9
         onPaint: {
             var ctx = getContext("2d");
             ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height)
             connectPaint(ctx)
             movePaint(ctx)
+            ctx.stroke();
+        }
+    }
+    Canvas {
+        id: backCanvas
+        anchors.fill: parent
+        z: 0
+        onPaint: {
+            var ctx = getContext("2d");
+            ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height)
+            grid(ctx)
             ctx.stroke();
         }
     }
@@ -106,5 +125,19 @@ DropArea {
             ctx.lineTo(path[i].X,path[i].Y)
         }
         ctx.stroke();
+    }
+
+    function grid(ctx){
+        var rows = height / space;
+        var columns = width / space;
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                var x = j * space;
+                var y = i * space;
+                ctx.fillText("*", x, y); // 使用fillText绘制星号
+            }
+        }
+        ctx.fillStyle = "black";
+        ctx.font = "18px Arial"; 
     }
 }
