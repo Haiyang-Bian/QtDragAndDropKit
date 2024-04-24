@@ -48,9 +48,7 @@ void DndControler::creatEdge(QJsonObject obj) {
 	edge.sourceHandler = obj.value(QLatin1String("SourceHandler")).toString();
 	edge.target = obj.value(QLatin1String("Target")).toString();
 	edge.targetHandler = obj.value(QLatin1String("TargetHandler")).toString();
-	edge.start = obj.value(QLatin1String("Start")).toArray();
-	edge.end = obj.value(QLatin1String("End")).toArray();
-	//edge.generatePath(getNode);
+	edge.path = generatePath(edge.source, edge.sourceHandler, edge.target, edge.targetHandler);
 	getEdge.insert(id, edge);
 }
 
@@ -64,20 +62,33 @@ QVariantList DndControler::getPosition(QString name) {
 	return position;
 }
 
+QJsonArray DndEdge::getEdge() {
+	QJsonArray path;
+	for (Point p : this->path)
+		path.append(QJsonObject{ {"X",p.x},{"Y",p.y} });
+	return path;
+}
+
 QJsonArray DndControler::getEdges() {
 	QJsonArray paths;
 	QMap<int, DndEdge>::iterator it;
 	for (it = getEdge.begin(); it != getEdge.end(); it++)
-		paths.append(it->path);
+		paths.append(it->getEdge());
 	return paths;
 }
 
-void DndControler::generatePath(QString s, QString sh, QString t, QString th) {
-	PathTree* paths = new PathTree{};
+QList<Point> DndControler::generatePath(QString s, QString sh, QString t, QString th) {
 	Point rs = realSartOrEnd(s, sh, getNode), rt = realSartOrEnd(t, th, getNode);
-	paths->p = rs;
-	
-	
+	AStar a(rs, rt);
+	a.findPath(getNode);
+	QList<Point> path;
+	PathNode* node = a.node;
+	while (node)
+	{
+		path.append(node->p);
+		node = node->parent;
+	}
+	return path;
 }
 
 Margins MergeBoundaries(const QStringList& ns, const QMap<QString, DndNode>& nodes) {
@@ -99,37 +110,10 @@ Margins MergeBoundaries(const QStringList& ns, const QMap<QString, DndNode>& nod
 	return all;
 }
 
-void PathTree::calculatePath(const QMap<QString, DndNode>& nodes) {
-	QMap<QString, DndNode>::const_iterator it;
-	QStringList firstType;
-	for (it = nodes.begin(); it != nodes.end(); ++it) {
-		Point b = Projection(it->getNodeMargin().Core(), p, son->p);
-		if (PointCover(b, *it) && !PointCover(p, *it) )
-			firstType.append(it.key());
-	}
-	Margins m = MergeBoundaries(firstType, nodes);
-	if (PointCover(son->p, m)) {
-	
-	}
-	else
-	{
-		PathTree *path, *transition = son;
-		if (p.x == son->p.x) {
-			if (p.y < son->p.y) {
-				path->p = Point{ p.x, m.Bottom };
-				
-			}
-		}
-	}
-	if (son != nullptr)
-		son->calculatePath(nodes);
-}
-
 void initPath(QJsonArray start, QJsonArray end, const Margins& s, const Margins& t) {
 	QList<double> path;
 	path << std::min(s.Top, t.Top) << end.at(0).toDouble() << end.at(1).toDouble();
 	for (double point : path) {
-		min_element(path.begin(), path.end());
 	}
 }
 
@@ -159,29 +143,7 @@ Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes) {
 			}
 		}
 	}
+	//ors.x = ors.x / 20 * 20;
+	//ors.y = ors.y / 20 * 20;
 	return ors;
-}
-
-
-
-QStringList horizontalCoverage(double y, double x1, double x2, const QMap<QString, DndNode>& nodes) {
-	QList<QString> edges;
-	QMap<QString, DndNode>::const_iterator it = nodes.begin();
-	for (; it != nodes.end(); ++it) {
-		Margins m = it->getNodeMargin();
-		if (y < m.Bottom && y > m.Top) {
-			if (x2 < x1) {
-				if (m.Right < x1 && m.Right > x2) {
-					edges << it.key();
-				}
-			}
-			else
-			{
-				if (m.Left > x1 && m.Left < x2) {
-					edges << it.key();
-				}
-			}
-		}
-	}
-	return edges;
 }

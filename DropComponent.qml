@@ -101,27 +101,9 @@ DropArea {
         ctx.beginPath();
         ctx.lineWidth = 3
         ctx.setLineDash([])
-        ctx.moveTo(path[1], path[2])
-        let x = path[1]
-        let y = path[2]
-        for (let i = 0;i < path.slice(3).length; i++){
-            if (path[0] === 0) {
-                if (i % 2 === 0){
-                    x = path.slice(3)[i]
-                    ctx.lineTo(x, y)
-                } else {
-                    y = path.slice(3)[i]
-                    ctx.lineTo(x, y)
-                }
-            } else {
-                if (i % 2 !== 0){
-                    x = path.slice(3)[i]
-                    ctx.lineTo(x, y)
-                } else {
-                    y = path.slice(3)[i]
-                    ctx.lineTo(x, y)
-                }
-            }
+        ctx.moveTo(path[0], path[0])
+        for (let i = 0;i < path.slice(1).length; i++){
+            ctx.lineTo(path[i].X,path[i].Y)
         }
         ctx.stroke();
     }

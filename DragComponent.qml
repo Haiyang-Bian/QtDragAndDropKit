@@ -96,23 +96,23 @@ Item {
 
             ListElement {
                 Name: "h1"
-                type: 2;
-                offset: 22
+                Type: 2;
+                Offset: 22
             }
             ListElement {
                 Name: "h2"
-                type: 1;
-                offset: 22
+                Type: 1;
+                Offset: 22
             }
             ListElement {
                 Name: "h3"
-                type: 4;
-                offset: 22
+                Type: 4;
+                Offset: 22
             }
             ListElement {
                 Name: "h4"
-                type: 3;
-                offset: 22
+                Type: 3;
+                Offset: 22
             }
         }
 
@@ -146,30 +146,30 @@ Item {
                 initY: xY[1]
 
                 Component.onCompleted: {
-                    switch(obj.type) {
+                    switch(obj.Type) {
                     case 1:
                         anchors.bottom = dragItem.top
                         anchors.bottomMargin = -10
                         anchors.left = dragItem.left
-                        anchors.leftMargin = obj.offset
+                        anchors.leftMargin = obj.Offset
                         break
                     case 2:
                         anchors.left = dragItem.right
                         anchors.leftMargin = -10
                         anchors.top = dragItem.top
-                        anchors.topMargin = obj.offset
+                        anchors.topMargin = obj.Offset
                         break
                     case 3:
                         anchors.bottom = dragItem.bottom
                         anchors.bottomMargin = -10
                         anchors.left = dragItem.left
-                        anchors.leftMargin = obj.offset
+                        anchors.leftMargin = obj.Offset
                         break
                     case 4:
                         anchors.right = dragItem.left
                         anchors.rightMargin = -10
                         anchors.top = dragItem.top
-                        anchors.topMargin = obj.offset
+                        anchors.topMargin = obj.Offset
                         break
                     }
                 }
@@ -177,15 +177,15 @@ Item {
         }
         function setInitXY(obj) {
             // 从上往下偏,从左往右偏
-            switch(obj.type){
+            switch(obj.Type){
             case 1:
-                return [obj.offset, 0]
+                return [obj.Offset, 0]
             case 2:
-                return [dragItem.width, obj.offset]
+                return [dragItem.width, obj.Offset]
             case 3:
-                return [obj.offset ,dragItem.height]
+                return [obj.Offset ,dragItem.height]
             case 4:
-                return [0, obj.offset]
+                return [0, obj.Offset]
             }
         }
 
