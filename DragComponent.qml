@@ -14,8 +14,8 @@ Item {
     Rectangle {
         id: dragItem
 
-        width: 64
-        height: 64
+        width: 80
+        height: 80
         x: 0
         y: 0
         z: 100
@@ -49,6 +49,7 @@ Item {
                         dragItem.x = 0;
                         dragItem.y = 0;
                     }else{
+                        resizer.enabled = true
                         dragItem.x -= dragItem.x % 20
                         dragItem.y -= dragItem.y % 20
                     }
@@ -82,6 +83,26 @@ Item {
             }
         }
 
+        MouseArea {
+            id: resizer
+            anchors.centerIn: parent
+            width: parent.width + 40 // 比矩形宽度大20
+            height: parent.height + 40 // 比矩形高度大20
+            
+            property int edgeMargin: 10 // 边缘检测范围
+            property bool onRightEdge: Math.abs(mouseX - parent.width - 20) < edgeMargin
+            property bool onBottomEdge: Math.abs(mouseY - parent.height - 20) < edgeMargin
+            enabled: false
+            hoverEnabled: true
+            //onClicked:{
+            //    console.log(parent)
+            //    console.log(width, height)
+            //}
+            onPositionChanged: {
+                cursorShape = (onRightEdge && onBottomEdge) ? Qt.SizeFDiagCursor : Qt.ArrowCursor
+            }
+        }
+
         states: State {
             when: dragHandler.active
             AnchorChanges {
@@ -100,22 +121,22 @@ Item {
             ListElement {
                 Name: "h1"
                 Type: 2;
-                Offset: 22
+                Offset: 40
             }
             ListElement {
                 Name: "h2"
                 Type: 1;
-                Offset: 22
+                Offset: 40
             }
             ListElement {
                 Name: "h3"
                 Type: 4;
-                Offset: 22
+                Offset: 40
             }
             ListElement {
                 Name: "h4"
                 Type: 3;
-                Offset: 22
+                Offset: 40
             }
         }
 
@@ -152,27 +173,27 @@ Item {
                     switch(obj.Type) {
                     case 1:
                         anchors.bottom = dragItem.top
-                        anchors.bottomMargin = -10
+                        anchors.bottomMargin = -height / 2
                         anchors.left = dragItem.left
-                        anchors.leftMargin = obj.Offset
+                        anchors.leftMargin = obj.Offset - width / 2
                         break
                     case 2:
                         anchors.left = dragItem.right
-                        anchors.leftMargin = -10
+                        anchors.leftMargin = -width / 2
                         anchors.top = dragItem.top
-                        anchors.topMargin = obj.Offset
+                        anchors.topMargin = obj.Offset - height / 2
                         break
                     case 3:
                         anchors.bottom = dragItem.bottom
-                        anchors.bottomMargin = -10
+                        anchors.bottomMargin = -height / 2
                         anchors.left = dragItem.left
-                        anchors.leftMargin = obj.Offset
+                        anchors.leftMargin = obj.Offset - width / 2
                         break
                     case 4:
                         anchors.right = dragItem.left
-                        anchors.rightMargin = -10
+                        anchors.rightMargin = -width / 2
                         anchors.top = dragItem.top
-                        anchors.topMargin = obj.Offset
+                        anchors.topMargin = obj.Offset - height / 2
                         break
                     }
                 }

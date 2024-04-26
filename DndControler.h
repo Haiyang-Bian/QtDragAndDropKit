@@ -1,5 +1,5 @@
 #pragma once
-#define MARGINS 50
+#define MARGINS 20
 #define MINSTEP 20
 
 #include <QObject>
@@ -19,7 +19,7 @@ inline bool operator<(const Point& p1, const Point& p2) {
 	return p1.x < p2.x && p1.y < p2.y;
 }
 inline bool operator==(const Point& p1, const Point& p2) {
-	return abs(p1.x - p2.x) < 5 && abs(p1.y - p2.y) < 5;
+	return p1.x == p2.x && p1.y == p2.y;
 }
 inline Point operator+(const Point& p1, const Point& p2) {
 	return Point{ p1.x + p2.x, p1.y + p2.y };
@@ -49,8 +49,8 @@ struct Handle
 {
 	int type = 1;
 	int offset = 0;
-	int width = 10;
-	int height = 10;
+	int width = 20;
+	int height = 20;
 	Handle(){}
 	Handle(QJsonObject h) {
 		this->type = h.value(QLatin1String("Type")).toInt();
@@ -66,7 +66,8 @@ class DndNode
 {
 public:
 	DndNode() {};
-	inline DndNode(double x, double y, QString type) {
+	inline DndNode(int x, int y, QString type) {
+		qDebug() << x << y << "绷不住了呀";
 		this->x = x;
 		this->y = y;
 		this->type = type;
@@ -74,6 +75,7 @@ public:
 	~DndNode() {};
 
 	inline Margins getNodeMargin() const {
+		qDebug() << x << y << width << height << MARGINS << "Cao!";
 		return Margins{
 			y - MARGINS,
 			x - MARGINS,
@@ -87,13 +89,13 @@ public:
 		switch (handle.type)
 		{
 		case 1:
-			return Point{ this->x + handle.offset + handle.width / 2, this->y };
+			return Point{ this->x + handle.offset, this->y };
 		case 2:
-			return Point{ this->x + width, this->y + handle.offset + handle.height / 2};
+			return Point{ this->x + width, this->y + handle.offset};
 		case 3:
-			return Point{ this->x + handle.offset + handle.width / 2, y + height };
+			return Point{ this->x + handle.offset, y + height };
 		case 4:
-			return Point{ x, y + handle.offset + handle.height / 2 };
+			return Point{ x, y + handle.offset};
 		}
 		return Point{};
 	}
@@ -101,6 +103,7 @@ public:
 	Point relativePoint(QString h) const {
 		const Handle& handle = handlers.value(h);
 		const Point p = absolutePosition(h);
+		qDebug() << p.x << "|" << p.y << "Abs";
 		switch (handle.type)
 		{
 		case 1:
@@ -118,23 +121,19 @@ public:
 public:
 	int x = 0;
 	int y = 0;
-	int width = 64;
-	int height = 64;
+	int width = 80;
+	int height = 80;
 	QString type;
 	QJsonObject data;
 	QMap<QString, Handle> handlers;
 };
 
-inline bool PointCover(const Point& p, const DndNode& node) {
-	Margins m = node.getNodeMargin();
-	if (p - Point{ m.Left, m.Top } < Point{ m.Right, m.Bottom } - Point{ m.Left, m.Top } && Point{} < p - Point{ m.Left, m.Top })
-		return true;
-	return false;
-}
 inline bool PointCover(const Point& p, const Margins& m) {
-	if (p - Point{ m.Left, m.Top } < Point{ m.Right, m.Bottom } - Point{ m.Left, m.Top })
+	qDebug() << "Point:" << p.x << p.y << "Margins:" << "Top:" << m.Top << "Left:" << m.Left << "Right:" << m.Right << "Bottom:" << m.Bottom;
+	if (p.x < m.Right - 5 && p.x > m.Left + 5 && p.y < m.Bottom - 5 && p.y > m.Top + 5)
 		return true;
-	return false;
+	else
+		return false;
 }
 
 Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes);
@@ -168,13 +167,7 @@ public:
 		openList.append(this->startPoint);
 		this->endPoint = e;
 	};
-	~AStar() {
-		while (node)
-		{
-			qDebug() << "X:" << node->p.x << "Y:" << node->p.y;
-			node = node->parent;
-		}
-	};
+	~AStar() {};
 
 	QList<PathNode*> openList;
 	QList<PathNode*> closeList;
@@ -182,95 +175,14 @@ public:
 	PathNode* startPoint = nullptr;
 	PathNode* node = nullptr;
 
-	void findPath(const QMap<QString, DndNode>& nodes) {
-		while (!openList.isEmpty()) {
-			PathNode* node = getBestNode();
-			qDebug() << "X:" << node->p.x << "Y:" << node->p.y << "Cost:" << node->cost;
-			qDebug() << "X:" << endPoint.x << "Y:" << endPoint.y << "End";
-			for (PathNode* text : openList)
-				cout << text->cost << "/";
-			cout << endl;
-			qDebug() << openList.count();
-			if (node->p == endPoint) {
-				this->node = node;
-				break;
-			}
-			else
-			{
-				int index = openList.indexOf(node);
-				openList.removeAt(index);
-				closeList.append(node);
-				QList<Point> nexts = getNextPoints(node->p);
-				for (Point p : nexts) {
-					if (isInList(p, closeList)) {
-						continue;
-					}
-					if (isInvalid(p, nodes)) {
-						continue;
-					}
-					if (p.x < 0 || p.x > 800 || p.y < 0 || p.y > 750)
-						continue;
-					if (!isInList(p, openList)) {
-						PathNode* next = new PathNode{ p };
-						next->parent = node;
-						next->gCost = gCost(next);
-						next->hCost = hCost(next);
-						next->cost = next->gCost + next->hCost;
-						openList.append(next);
-						qDebug() << "!!!!";
-					}
-					else
-					{
-						PathNode* pn = getNode(p);
-						if (pn->gCost > node->gCost + 1)
-						{
-							pn->parent = node;
-							pn->cost = gCost(pn) + hCost(pn);
-						}
-					}
-				}
-			}
-		}
-	}
-	bool isInList(Point p, QList<PathNode*> list) {
-		for (PathNode* pn : list) {
-			if (pn->p == p)
-				return true;
-		}
-		return false;
-	}
-	PathNode* getBestNode() {
-		QList<PathNode*>::iterator it = openList.begin();
-		PathNode* minP = *it;
-		for (it += 1; it != openList.end(); ++it) {
-			if (minP->cost > (*it)->cost)
-				minP = *it;
-		}
-		return minP;
-	}
-	PathNode* getNode(Point p) {
-		for (PathNode* n : openList) {
-			if (n->p == p)
-				return n;
-		}
-		return nullptr;
-	}
-	QList<Point> getNextPoints(Point p) {
-		return QList<Point> {
-			p - Point{0, MINSTEP},
-			p + Point{MINSTEP,0},
-			p + Point{0, MINSTEP},
-			p - Point{MINSTEP,0}
-		};
-	}
-	bool isInvalid(Point p, const QMap<QString, DndNode>& nodes) {
-		QMap<QString, DndNode>::const_iterator it;
-		for (it = nodes.begin(); it != nodes.end(); ++it) {
-			if (p.x > it->x && p.x < it->x + it->width && p.y > it->y && p.y < it->y + it->height)
-				return true;
-		}
-		return false;
-	}
+public:
+	PathNode* getBestNode();
+	PathNode* getNode(Point p);
+	QList<Point> getNextPoints(Point p);
+	void findPath(const QMap<QString, DndNode>& nodes);
+	inline bool isInList(Point p, QList<PathNode*> list);
+	bool isInvalid(Point p, const QMap<QString, DndNode>& nodes);
+	
 	inline int gCost(PathNode* n) {
 		return n->parent->gCost + 1;
 	}

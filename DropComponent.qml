@@ -16,7 +16,7 @@ DropArea {
             x -= x % space
             let y = drop.y - drop.source.height / 2
             y -= y % space
-            console.log(x,y)
+            console.log(x, y)
             var obj = comp.createObject(dragArea,
                 {
                     "setname": "node_" + mainWindow.id,
@@ -32,6 +32,8 @@ DropArea {
                 "Name": "node_" + mainWindow.id,
                 "X": x,
                 "Y": y,
+                "Width": drop.source.width,
+                "Height": drop.source.height,
                 "Type": "Comman",
                 "Handlers": drop.source.getHandlers()
             })
@@ -65,7 +67,11 @@ DropArea {
             lineCanvas.requestPaint()
         }
         if (drag.source.type === "Component") {
-            DndControler.moveNode(drag.source.name, drag.x - 32, drag.y - 32)
+            let x = drag.x - drag.source.width / 2;
+            let y = drag.y - drag.source.height / 2;
+            x -= x % space
+            y -= y % space
+            DndControler.moveNode(drag.source.name, x, y)
             lineCanvas.requestPaint()
         }
     }
@@ -121,7 +127,7 @@ DropArea {
         ctx.lineWidth = 3
         ctx.setLineDash([])
         ctx.moveTo(path[0], path[0])
-        for (let i = 0;i < path.slice(1).length; i++){
+        for (let i = 0;i < path.length; i++){
             ctx.lineTo(path[i].X,path[i].Y)
         }
         ctx.stroke();

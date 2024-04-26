@@ -92,6 +92,7 @@ ApplicationWindow {
 
     Component {
         id: libDelegate
+
         Loader {
             width: 60;
             height: 60;
