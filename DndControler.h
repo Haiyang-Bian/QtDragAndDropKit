@@ -33,6 +33,9 @@ inline Point operator*(const Point& p1, const Point& p2) {
 inline Point operator/(const Point& p1, int c) {
 	return Point{ p1.x / c, p1.y / c };
 }
+inline bool isParallel(const Point& p1, const Point& p2) {
+	return p1.x == p2.x || p1.y == p2.y;
+}
 
 struct Margins
 {
@@ -51,6 +54,7 @@ struct Handle
 	int offset = 0;
 	int width = 20;
 	int height = 20;
+	bool isConnected = false;
 	Handle(){}
 	Handle(QJsonObject h) {
 		this->type = h.value(QLatin1String("Type")).toInt();
@@ -67,7 +71,6 @@ class DndNode
 public:
 	DndNode() {};
 	inline DndNode(int x, int y, QString type) {
-		qDebug() << x << y << "绷不住了呀";
 		this->x = x;
 		this->y = y;
 		this->type = type;
@@ -75,7 +78,6 @@ public:
 	~DndNode() {};
 
 	inline Margins getNodeMargin() const {
-		qDebug() << x << y << width << height << MARGINS << "Cao!";
 		return Margins{
 			y - MARGINS,
 			x - MARGINS,
@@ -103,7 +105,6 @@ public:
 	Point relativePoint(QString h) const {
 		const Handle& handle = handlers.value(h);
 		const Point p = absolutePosition(h);
-		qDebug() << p.x << "|" << p.y << "Abs";
 		switch (handle.type)
 		{
 		case 1:
@@ -129,7 +130,6 @@ public:
 };
 
 inline bool PointCover(const Point& p, const Margins& m) {
-	qDebug() << "Point:" << p.x << p.y << "Margins:" << "Top:" << m.Top << "Left:" << m.Left << "Right:" << m.Right << "Bottom:" << m.Bottom;
 	if (p.x < m.Right - 5 && p.x > m.Left + 5 && p.y < m.Bottom - 5 && p.y > m.Top + 5)
 		return true;
 	else
@@ -162,13 +162,15 @@ public:
 class AStar
 {
 public:
-	AStar(Point s, Point e) {
+	AStar(Point rs, Point s, Point e) {
+		this->realStart = rs;
 		this->startPoint = new PathNode{ s };
 		openList.append(this->startPoint);
 		this->endPoint = e;
 	};
 	~AStar() {};
 
+	Point realStart;
 	QList<PathNode*> openList;
 	QList<PathNode*> closeList;
 	Point endPoint;
@@ -222,16 +224,20 @@ public:
 	Q_INVOKABLE void createNode(QJsonObject obj);
 	Q_INVOKABLE void setNode(QString name, QJsonObject obj);
 	Q_INVOKABLE void removeNode(QString name);
-	Q_INVOKABLE void moveNode(QString name, double x, double y);
-	Q_INVOKABLE QVariantList getPosition(QString name);
+	Q_INVOKABLE QJsonArray moveNode(QString name, int x, int y);
+	Q_INVOKABLE void moveNodeEnd(QString name, int x, int y);
+	Q_INVOKABLE QVariantList getPosition(QString s, QString sh);
 
 	// 对连接线的编辑
 	Q_INVOKABLE void creatEdge(QJsonObject obj);
 	Q_INVOKABLE void removeEdge(int id);
 	Q_INVOKABLE QJsonArray getEdges();
 	// 解算路径
-	void initTopPath(QString s, QString sh, QString t, QString th);
 	QList<Point> generatePath(QString s, QString sh, QString t, QString th);
+
+signals:
+	void moveEnd();
+	void rmNode();
 
 private:
 	QMap<QString, DndNode> getNode;

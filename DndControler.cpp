@@ -28,6 +28,25 @@ PathNode* AStar::getBestNode() {
 		if (minP->cost > (*it)->cost)
 			minP = *it;
 	}
+	QList<PathNode*> nodes;
+	for (PathNode* p : openList) {
+		if (p->cost == minP->cost)
+			nodes.append(p);
+	}
+	for (PathNode* pn : nodes) {
+		if (pn == startPoint)
+			break;
+		else if (pn->parent == startPoint)
+		{
+			if (isParallel(pn->p, pn->parent->p) && isParallel(pn->p, realStart))
+				return pn;
+		}
+		else
+		{
+			if (isParallel(pn->p, pn->parent->p) && isParallel(pn->p, pn->parent->parent->p))
+				return pn;
+		}
+	}
 	return minP;
 }
 
@@ -52,8 +71,6 @@ bool AStar::isInvalid(Point p, const QMap<QString, DndNode>& nodes) {
 void AStar::findPath(const QMap<QString, DndNode>& nodes) {
 	while (!openList.isEmpty()) {
 		PathNode* node = getBestNode();
-		qDebug() << "X:" << node->p.x << "Y:" << node->p.y << "Cost:" << node->cost;
-		qDebug() << "X:" << endPoint.x << "Y:" << endPoint.y << "End";
 		if (node->p == endPoint) {
 			this->node = node;
 			break;
@@ -97,7 +114,6 @@ void AStar::findPath(const QMap<QString, DndNode>& nodes) {
 
 void DndControler::createNode(QJsonObject obj) {
 	QString name = obj.value(QLatin1String("Name")).toString();
-	qDebug() << obj.value(QLatin1String("X")).toInt() << obj.value(QLatin1String("Y")).toInt() << "这里不会有事吧";
 	DndNode node(obj.value(QLatin1String("X")).toInt(),
 		obj.value(QLatin1String("Y")).toInt(),
 		obj.value(QLatin1String("Type")).toString()
@@ -120,18 +136,49 @@ void DndControler::removeNode(QString name) {
 	QMap<int, DndEdge>::iterator it;
 	QList<int> delEdges;
 	for (it = getEdge.begin(); it != getEdge.end(); it++) {
-		if (it->source == name || it->target == name)
+		if (it->source == name) {
 			delEdges << it.key();
+			getNode[it->target].handlers[it->targetHandler].isConnected = false;
+		}
+		else if (it->target == name) {
+			delEdges << it.key();
+			getNode[it->source].handlers[it->sourceHandler].isConnected = false;
+		}
 	}
 	for (int i : delEdges) {
 		getEdge.remove(i);
 	}
+	emit rmNode();
 }
 
-void DndControler::moveNode(QString name, double x, double y) {
-	getNode[name].x = x;
-	getNode[name].y = y;
-	// 更新
+QJsonArray DndControler::moveNode(QString name, int x, int y) {
+	const DndNode& node = getNode.value(name);
+	QMap<QString, Handle>::const_iterator it;
+	QJsonArray mc;
+	for (it = node.handlers.begin(); it != node.handlers.end(); ++it) {
+		if (it->isConnected) {
+			Point start = node.absolutePosition(it.key());
+			Point end = start + Point{ x - node.x,y - node.y };
+			mc.append(QJsonObject{
+				{"Start", QJsonArray{start.x, start.y}},
+				{"End", QJsonArray{end.x, end.y}}
+				});
+		}
+	}
+	return mc;
+}
+
+void DndControler::moveNodeEnd(QString name, int x, int y) {
+	DndNode& node = getNode[name];
+	node.x = x;
+	node.y = y;
+	QMap<int, DndEdge>::iterator it;
+	for (it = getEdge.begin(); it != getEdge.end(); ++it) {
+		if (it->source == name || it->target == name) {
+			it->path = generatePath(it->source, it->sourceHandler, it->target, it->targetHandler);
+		}
+	}
+	emit moveEnd();
 }
 
 void DndControler::creatEdge(QJsonObject obj) {
@@ -149,9 +196,10 @@ void DndControler::removeEdge(int id) {
 	getEdge.remove(id);
 }
 
-QVariantList DndControler::getPosition(QString name) {
+QVariantList DndControler::getPosition(QString s, QString sh) {
 	QVariantList position;
-	position << getNode[name].x << getNode[name].y;
+	Point p = getNode.value(s).absolutePosition(sh);
+	position << p.x << p.y;
 	return position;
 }
 
@@ -172,11 +220,7 @@ QJsonArray DndControler::getEdges() {
 
 QList<Point> DndControler::generatePath(QString s, QString sh, QString t, QString th) {
 	Point rs = realSartOrEnd(s, sh, getNode), rt = realSartOrEnd(t, th, getNode);
-	qDebug() << rs.x << "|" << rs.y;
-	qDebug() << rt.x << "|" << rt.y;
-	qDebug() << s << sh << t << th;
-	AStar a(rs, rt);
-	qDebug() << a.isInvalid(rs, getNode) << a.isInvalid(rt, getNode);
+	AStar a(getNode.value(s).absolutePosition(sh), rs, rt);
 	a.findPath(getNode);
 	QList<Point> path;
 	PathNode* node = a.node;
@@ -186,47 +230,13 @@ QList<Point> DndControler::generatePath(QString s, QString sh, QString t, QStrin
 		node = node->parent;
 	}
 	path.prepend(getNode.value(t).absolutePosition(th));
-	path.append(getNode.value(s).absolutePosition(sh));
-	for (Point p : path)
-		qDebug() << p.x << "|" << p.y << "Why?";
+	path.append(a.realStart);
+	getNode[s].handlers[sh].isConnected = true;
+	getNode[t].handlers[th].isConnected = true;
 	return path;
-}
-
-Margins MergeBoundaries(const QStringList& ns, const QMap<QString, DndNode>& nodes) {
-	Margins all = nodes.value(ns.at(0)).getNodeMargin();
-	if (ns.size() == 1)
-		return all;
-	QStringList::const_iterator it;
-	for (it = ns.begin() + 1; it != ns.end(); ++it) {
-		Margins m = nodes.value(*it).getNodeMargin();
-		if (m.Top < all.Top)
-			all.Top = m.Top;
-		if (m.Left < all.Left)
-			all.Left = m.Left;
-		if (m.Right > all.Right)
-			all.Right = m.Right;
-		if (m.Bottom > all.Bottom)
-			all.Bottom = m.Bottom;
-	}
-	return all;
-}
-
-void initPath(QJsonArray start, QJsonArray end, const Margins& s, const Margins& t) {
-	QList<double> path;
-	path << std::min(s.Top, t.Top) << end.at(0).toDouble() << end.at(1).toDouble();
-	for (double point : path) {
-	}
-}
-
-void DndControler::initTopPath(QString s, QString sh, QString t, QString th) {
-	QList<int> path;
-	DndNode& source = getNode[s], &target = getNode[t];
-	Margins sm = source.getNodeMargin(), tm = target.getNodeMargin();
-	
 }
 
 Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes) {
 	const DndNode& p = nodes[n];
-	qDebug() << p.relativePoint(h).x << "|" << p.relativePoint(h).y << "Ors";
 	return p.relativePoint(h);
 }

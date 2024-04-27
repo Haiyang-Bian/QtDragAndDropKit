@@ -52,6 +52,7 @@ Item {
                         resizer.enabled = true
                         dragItem.x -= dragItem.x % 20
                         dragItem.y -= dragItem.y % 20
+                        DndControler.moveNodeEnd(dragItem.name, root.x + dragItem.x, root.y + dragItem.y)
                     }
                 }
             }
@@ -147,11 +148,14 @@ Item {
                 onTriggered: { 
                     DndControler.removeNode(dragItem.name)
                     dragItem.destroy()
-                    lineCanvas.requestPaint()
                 } 
             }
-            MenuItem { text: "选项2"; onTriggered: { /* 处理选项2 */ } }
-            MenuItem { text: "选项3"; onTriggered: { /* 处理选项3 */ } }
+            MenuItem { text: "复制"; onTriggered: { /* 处理选项2 */ } }
+            MenuItem { text: "粘贴"; onTriggered: { /* 处理选项3 */ } }
+            MenuItem { text: "剪切"; onTriggered: { /* 处理选项3 */ } }
+            MenuItem { text: "顺时针旋转90°"; onTriggered: { /* 处理选项3 */ } }
+            MenuItem { text: "逆时针旋转90°"; onTriggered: { /* 处理选项3 */ } }
+            MenuItem { text: "锁定"; onTriggered: { /* 处理选项3 */ } }
         }
 
         Component {
