@@ -23,6 +23,12 @@ Item {
         property var rmsg: msg
         property var type: "Component"
         property string name: setname
+        property bool lock: false
+
+        border {
+            color: "blue"
+            width: rsizer.resize ? 2 : 0
+        }
 
         color: msg
 
@@ -39,6 +45,7 @@ Item {
 
         DragHandler {
             id: dragHandler
+            enabled: !dragItem.lock
             onActiveChanged: {
                 if (active) {
                     parent.grabToImage(function(result) {
@@ -49,7 +56,7 @@ Item {
                         dragItem.x = 0;
                         dragItem.y = 0;
                     }else{
-                        resizer.enabled = true
+                        //resizer.enabled = true
                         dragItem.x -= dragItem.x % 20
                         dragItem.y -= dragItem.y % 20
                         DndControler.moveNodeEnd(dragItem.name, root.x + dragItem.x, root.y + dragItem.y)
@@ -60,7 +67,12 @@ Item {
 
         TapHandler {
             acceptedButtons: Qt.RightButton | Qt.LeftButton
+
+            property bool onRightEdge: true
+            property bool onBottomEdge: true
+
             onDoubleTapped: (eventPoint, button) => {
+                console.log(parent)
                 if (button === Qt.LeftButton) {
                     drawer.open()
                 }
@@ -72,6 +84,17 @@ Item {
             }
         }
 
+        Resizer {
+            id: rsizer
+            anchors.fill: parent
+            realParent: dragItem
+
+            onSizeChanged: {
+                DndControler.resizeNode(dragItem.name, root.x + dragItem.x, root.y + dragItem.y, dragItem.width, dragItem.height)
+            }
+        }
+        
+
         Drawer {
             id: drawer
             width: 240
@@ -81,26 +104,6 @@ Item {
 
             Column {
                 
-            }
-        }
-
-        MouseArea {
-            id: resizer
-            anchors.centerIn: parent
-            width: parent.width + 40 // 比矩形宽度大20
-            height: parent.height + 40 // 比矩形高度大20
-            
-            property int edgeMargin: 10 // 边缘检测范围
-            property bool onRightEdge: Math.abs(mouseX - parent.width - 20) < edgeMargin
-            property bool onBottomEdge: Math.abs(mouseY - parent.height - 20) < edgeMargin
-            enabled: false
-            hoverEnabled: true
-            //onClicked:{
-            //    console.log(parent)
-            //    console.log(width, height)
-            //}
-            onPositionChanged: {
-                cursorShape = (onRightEdge && onBottomEdge) ? Qt.SizeFDiagCursor : Qt.ArrowCursor
             }
         }
 
@@ -155,7 +158,12 @@ Item {
             MenuItem { text: "剪切"; onTriggered: { /* 处理选项3 */ } }
             MenuItem { text: "顺时针旋转90°"; onTriggered: { /* 处理选项3 */ } }
             MenuItem { text: "逆时针旋转90°"; onTriggered: { /* 处理选项3 */ } }
-            MenuItem { text: "锁定"; onTriggered: { /* 处理选项3 */ } }
+            MenuItem { 
+                text: !dragItem.lock ? "锁定" : "解锁"
+                onTriggered: { 
+                    dragItem.lock = !dragItem.lock
+                } 
+            }
         }
 
         Component {

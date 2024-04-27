@@ -227,6 +227,7 @@ public:
 	Q_INVOKABLE QJsonArray moveNode(QString name, int x, int y);
 	Q_INVOKABLE void moveNodeEnd(QString name, int x, int y);
 	Q_INVOKABLE QVariantList getPosition(QString s, QString sh);
+	Q_INVOKABLE void resizeNode(QString name, int x, int y, int width, int height);
 
 	// 对连接线的编辑
 	Q_INVOKABLE void creatEdge(QJsonObject obj);

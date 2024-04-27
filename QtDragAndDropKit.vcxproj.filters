@@ -55,6 +55,9 @@
     <None Include="Node.qml">
       <Filter>Source Files\qml</Filter>
     </None>
+    <None Include="Resizer.qml">
+      <Filter>Source Files\qml</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DndControler.h">

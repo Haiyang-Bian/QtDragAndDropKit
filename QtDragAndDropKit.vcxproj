@@ -94,6 +94,7 @@
     <None Include="Handle.qml" />
     <None Include="NewFile.qml" />
     <None Include="Node.qml" />
+    <None Include="Resizer.qml" />
     <QtRcc Include="qml.qrc" />
     <None Include="DragComponent.qml" />
     <None Include="DropComponent.qml" />

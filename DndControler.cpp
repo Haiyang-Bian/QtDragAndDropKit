@@ -240,3 +240,18 @@ Point realSartOrEnd(QString n, QString h, const QMap<QString, DndNode>& nodes) {
 	const DndNode& p = nodes[n];
 	return p.relativePoint(h);
 }
+
+void DndControler::resizeNode(QString name, int x, int y, int width, int height) {
+	DndNode& node = getNode[name];
+	node.x = x;
+	node.y = y;
+	node.width = width;
+	node.height = height;
+	QMap<int, DndEdge>::iterator it;
+	for (it = getEdge.begin(); it != getEdge.end(); ++it) {
+		if (it->source == name || it->target == name) {
+			it->path = generatePath(it->source, it->sourceHandler, it->target, it->targetHandler);
+		}
+	}
+	emit moveEnd();
+}
